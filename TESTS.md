@@ -1,0 +1,1 @@
+Create pod searcher structure.
