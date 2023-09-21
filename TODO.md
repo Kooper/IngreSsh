@@ -35,10 +35,10 @@ Implement the following
 * [x] Delay on incorrect auth
 * [x] Tests
 * [x] Add a proper global server configuration
-* Cleanup
+* [x] Cleanup
 * Documentation
 * CI on github
-* Put it all together
+* Add username to SSH keys in resources, otherwise it's hard to audit
 * Helm chart?
 * Default image for the debug environment
 * Propose something for SCP (looks like this is hard enough)
