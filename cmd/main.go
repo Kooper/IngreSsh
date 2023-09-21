@@ -1,19 +1,3 @@
-/*
-Copyright 2023.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
 package main
 
 import (
@@ -24,6 +8,7 @@ import (
 	"os"
 
 	"github.com/gliderlabs/ssh"
+	gossh "golang.org/x/crypto/ssh"
 	"golang.org/x/sync/errgroup"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
@@ -37,12 +22,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	ingressv1 "kuberstein.io/ingressh/api/v1"
+	//+kubebuilder:scaffold:imports
+
+	ing "kuberstein.io/ingressh/api/v1"
 	"kuberstein.io/ingressh/internal/controller"
 	"kuberstein.io/ingressh/internal/k8s"
 	"kuberstein.io/ingressh/internal/server"
 	"kuberstein.io/ingressh/internal/types"
-	//+kubebuilder:scaffold:imports
 )
 
 var (
@@ -53,7 +39,7 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
-	utilruntime.Must(ingressv1.AddToScheme(scheme))
+	utilruntime.Must(ing.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 
@@ -131,7 +117,7 @@ func main() {
 
 	setupLog.Info("Starting SSH server...")
 	eg.Go(func() error {
-		return startSssh(sshConfig, egCtx)
+		return startSshServer(sshConfig, egCtx)
 	})
 
 	if err := eg.Wait(); err != nil {
@@ -139,7 +125,7 @@ func main() {
 	}
 }
 
-func startSssh(sshConfigPath string, ctx context.Context) error {
+func startSshServer(sshConfigPath string, ctx context.Context) error {
 
 	conf, err := types.GetServerConf(sshConfigPath)
 	if err != nil {
@@ -148,23 +134,32 @@ func startSssh(sshConfigPath string, ctx context.Context) error {
 
 	kube := k8s.ClientImpl{}
 	if err := kube.Init(ctrl.GetConfigOrDie()); err != nil {
-		return fmt.Errorf("error creating K8s client: %v", err)
+		return fmt.Errorf("unable to create K8s client: %v", err)
 	}
 
 	ln, err := net.Listen("tcp", conf.BindAddress)
 	if err != nil {
-		return err
+		return fmt.Errorf("unable to listen socket at %s: %v", conf.BindAddress, err)
+	}
+
+	pemBytes, err := os.ReadFile(conf.HostKeyFile)
+	if err != nil {
+		return fmt.Errorf("unable to read host key file %s: %v", conf.HostKeyFile, err)
+	}
+
+	signer, err := gossh.ParsePrivateKey(pemBytes)
+	if err != nil {
+		return fmt.Errorf("unable to parse private key: %v", err)
 	}
 
 	srv := &ssh.Server{
 		PublicKeyHandler: server.PublicKeyAuthHandler,
 		Handler:          server.GetHandler(&kube, conf),
+		HostSigners:      []ssh.Signer{signer},
 	}
 
-	// TODO move to ssh.Server.HostSigners
-	srv.SetOption(ssh.HostKeyFile(conf.HostKeyFile))
-
 	setupLog.Info("Starting ssh ingress server", "address", conf.BindAddress)
+
 	go srv.Serve(ln)
 	for {
 		select {

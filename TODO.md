@@ -37,6 +37,7 @@ Implement the following
 * [x] Add a proper global server configuration
 * Cleanup
 * Documentation
+* CI on github
 * Put it all together
 * Helm chart?
 * Default image for the debug environment

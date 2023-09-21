@@ -23,8 +23,7 @@ var Routes = RoutingTable{
 }
 
 // Set sets routes for the specified config
-
-// FIXME
+//
 // First, find the previous configuration (by the Name and Namespace)
 // Then compare the previous and the new configuration, finding changes in
 // the set of authorizedKeys (to add/delete)

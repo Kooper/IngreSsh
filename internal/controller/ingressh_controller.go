@@ -1,19 +1,3 @@
-/*
-Copyright 2023.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
 package controller
 
 import (
@@ -57,13 +41,12 @@ const finalizerName = "ingressh.ingress.kuberstein.io/finalizer"
 // The job is to:
 // - Load the named IngreSsh
 // - Configure the SSH server accordingly
-// - Get list of active sessions and update the status
+// - TODO Get list of active sessions and update the status
 func (r *IngreSshReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := log.FromContext(ctx)
 
 	ingreSsh := &ing.IngreSsh{}
 
-	// FIXME delete the resource. How to get what was deleted?
 	if err := r.Get(ctx, req.NamespacedName, ingreSsh); err != nil {
 		log.Error(err, "unable to fetch IngreSsh resource, return IgnoreNotFound")
 		// we'll ignore not-found errors, since they can't be fixed by an immediate
@@ -110,12 +93,8 @@ func (r *IngreSshReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, nil
 	}
 
-	// TODO: How to set properties of the exactly this configuration object?
-	// Should I remove the previous object and register the new one? How to
-	// find out what's the new one and what was the old one? Is there a name
-	// of the resource?
-	log.Info("configure SSH server accordingly to resource configuration")
-	log.Info(fmt.Sprintf("sshConfig: %v", sshConfig))
+	log.Info("Update configuration of SSH server")
+
 	server.Routes.Set(sshConfig)
 
 	// TODO Update status?

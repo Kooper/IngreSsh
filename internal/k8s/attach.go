@@ -103,8 +103,6 @@ func AttachAccessContainer(
 // container. It merges server default configuration, attach container
 // configuration from the route and the options entered by the user via
 // command-line of SSH command.
-//
-// TODO pass server defaults here
 func getEphemeralContainerSpec(
 	command []string,
 	config *types.SshConfig,
@@ -112,11 +110,6 @@ func getEphemeralContainerSpec(
 	targetContainer string,
 ) *corev1.EphemeralContainer {
 
-	// FIXME the default image is defined in the server config!
-	image := "ubuntu"
-	if config.Image != "" {
-		image = config.Image
-	}
 	args := config.Args
 	workdir := config.WorkingDir
 
@@ -124,7 +117,7 @@ func getEphemeralContainerSpec(
 	ephemeralContainer := corev1.EphemeralContainer{
 		EphemeralContainerCommon: corev1.EphemeralContainerCommon{
 			Name:  containerName,
-			Image: image,
+			Image: config.Image,
 			TTY:   true,
 			Stdin: true,
 			// Not specifying a security context should in theory run debug
@@ -233,7 +226,7 @@ func ExecInContainer(kube *ClientImpl, pod *v1.Pod, containerName string, sess s
 	})
 
 	if err != nil {
-		return fmt.Errorf("%w Failed executing command on %v/%v container %s",
+		return fmt.Errorf("%w failed executing command on %v/%v container %s",
 			err, pod.Namespace, pod.Name, containerName)
 	}
 	return nil
@@ -275,7 +268,7 @@ func AttachSshSessionTerminal(kube *ClientImpl, pod *v1.Pod, containerName strin
 	})
 
 	if err != nil {
-		return fmt.Errorf("%w Failed executing shell on %v/%v container %s",
+		return fmt.Errorf("%w failed executing shell on %v/%v container %s",
 			err, pod.Namespace, pod.Name, containerName)
 	}
 

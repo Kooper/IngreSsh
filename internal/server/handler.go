@@ -56,8 +56,6 @@ func GetHandler(kube *k8s.ClientImpl, conf *types.ServerConfig) func(sess ssh.Se
 
 		// Session attach options vary depending on the mode
 		if targetConfig.Session == "Exec" {
-			// Command is specified in the config and could be specified in the
-			// session.
 			command := targetConfig.Command
 			if len(sess.Command()) > 0 {
 				command = sess.Command()
