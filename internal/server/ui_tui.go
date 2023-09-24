@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	defaultListHeight = 24
+	defaultListHeight = 20
 	defaultListWidth  = 60
 )
 
@@ -287,7 +287,6 @@ func (m *model) stepSelectNamespace() error {
 
 	m.listNamespaces = m.setupList(items, "Select the namespace")
 	m.state = selectNamespace
-
 	return nil
 }
 
@@ -325,6 +324,7 @@ func interactive(sess ssh.Session, targetAuth authz, hint types.SshTarget) (
 		return types.SshTarget{}, podSshConfig{}, err
 	}
 
+	fmt.Fprint(sess, "\n")
 	sshTarget, podConfig := result.(model).result()
 	return sshTarget, podConfig, nil
 }

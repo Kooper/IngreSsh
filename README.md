@@ -45,7 +45,9 @@ The project is implemented with:
 
 ## Demo
 
-TBD console recording attaching an application pod with SSH
+Connecting to the pod in the cluster using SSH ingress:
+
+[![asciicast](https://asciinema.org/a/gh6CTevs3p55ARhVcKLYNPizF.svg)](https://asciinema.org/a/gh6CTevs3p55ARhVcKLYNPizF)
 
 ## Configuration
 

@@ -36,6 +36,7 @@ Implement the following
 * [x] Tests
 * [x] Add a proper global server configuration
 * [x] Cleanup
+* Fix demo scene bug (interactive choice with unambiguous drilldown)
 * Documentation
 * CI on github
 * Add username to SSH keys in resources, otherwise it's hard to audit
