@@ -55,12 +55,67 @@ Connecting to the pod in the cluster using SSH ingress:
 
 ### IngreSsh Resource
 
-Scheme of ingress resource.
+An elaborate description of the `IngreSsh` resources schema is available at [api/v1/ingressh_types.go](api/v1/ingressh_types.go)
+
+Below is a brief outline of the resource:
+
+```yaml
+---
+apiVersion: ingress.kuberstein.io/v1
+kind: IngreSsh
+metadata:
+  name: ssh-exec
+spec:
+  session: Exec                # Uses exec command
+  command: [/bin/sh]           # Uses /bin/sh as the user's shell
+  selectors: [app=nginx]       # Authorizes access to the pods with this label in the namespace of the resource
+  authorizedKeys:
+  - ssh-rsa AAAAB3NzaC1yc2E... # Like ~/.ssh/authorized_keys
+---
+apiVersion: ingress.kuberstein.io/v1
+kind: IngreSsh
+metadata:
+  name: ssh-debug
+spec:
+  session: Debug               # Uses debug attach command
+  image: busybox               # Starts busybox ephemeral container to attach the user's shell
+  selectors: [app=nginx]       # Authorizes access to the pods with this label in the namespace of the resource
+  authorizedKeys:
+  - ssh-rsa AAAAB3NzaC1yc2E... # Like ~/.ssh/authorized_keys
+```
 
 ### Server Configuration
 
-The server configuration consists of server's RSA private key (k8s Secret),
-and configuration file (k8s ConfigMap)
+The server configuration consists of the server's RSA private key and configuration file.
+When running from the source, they are defaulted to the sample configs in
+[manifests/server](manifests/server)
+
+To run the server from the docker container in the cluster you'll need a Secret and ConfigMap
+resources for them:
+
+```yaml
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: secret-ssh
+type: kubernetes.io/ssh-auth
+data:
+  ssh-privatekey: |
+    MIIEpQIBAAKCAQEAulqb/Y ...
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-ssh
+data:
+  ssh_server_config: |
+    bind_address: ":2222"
+    host_key_file: "ssh-privatekey"
+    debug_image: "ubuntu"
+---
+# Here should go the pod definition for the server's container
+```
 
 ## How to try it from the source
 
