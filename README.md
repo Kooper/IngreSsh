@@ -1,15 +1,17 @@
 # SSH ingress for Kubernetes
 
+![build and test](https://github.com/Kooper/IngreSsh/actions/workflows/go.yml/badge.svg)
+
 The project implements a Kubernetes ingress controller, which routes incoming
 SSH connections to the shell sessions at authorized pods. Authorization and
 routing are configured as IngreSsh Kubernetes resources.
 
 ## Description
 
-"How can I SSH into the running pod in Kubernetes?" is probably the first
+_"How can I SSH into the running pod in Kubernetes?"_ is probably the first
 question a new software developer asks a Kubernetes administrator. The usual
-answer is "You can't, but there is kubectl exec/kubectl cp which are doing
-the same."
+answer is _"You can't, but there is kubectl exec/kubectl cp which are doing
+the same."_
 
 Kubectl does the trick indeed, but it looks like people just have a warm fuzzy
 feeling about connecting with the familiar SSH to any environment like
@@ -22,11 +24,11 @@ context of the target pods.
 * This might be useful for users not comfortable with kubectl or who have no
   kubectl configured/installed
 * The user could access the container for the application's debug purposes
-  without the API server is exposed outside the secured perimeter
+  without the API server being exposed outside the secured perimeter
 * It is possible to configure a predefined debug image with all the required
-  tools to be used for shell sessions.This allows the administrator to control
+  tools to be used for shell sessions. This allows the administrator to control
   what is running as debug containers without allowing users to run whatever
-  they want or set up a special security policies
+  they want or set up special security policies
 
 Incoming SSH connections are authenticated with the authorized keys, configured
 in the ingress resource parameters. Ingress resource also contains
@@ -39,9 +41,9 @@ connection in the Linux namespace of the target container.
 
 The project is implemented with:
 
-* kubebuilder
-* GliderLabs SSH libraries
-* CharmBracelet libraries
+* [kubebuilder](https://book.kubebuilder.io/)
+* [GliderLabs](https://github.com/gliderlabs/ssh) SSH libraries
+* CharmBracelet [bubbletea](https://github.com/charmbracelet/bubbletea) libraries
 
 ## Demo
 
