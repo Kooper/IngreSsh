@@ -5,6 +5,23 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// AuthorizedKey is a structure joining user's login name and public key.
+// The login name is used for audit/logs and not influence login
+// or authorization parameters. It also is independent of what user
+// specifies as a login part of the connection sting as something@cluster.
+// Users are only matched with their public keys.
+type AuthorizedKey struct {
+	// User specifies the login name of the user.
+	// It is used only for audit.
+	// +optional
+	User string `json:"user,omitempty"`
+
+	// Key is a public key to authorize login
+	// The keys are specified in the same format as lines in the
+	// .ssh/authorized_keys file
+	Key string `json:"key"`
+}
+
 // IngreSshSpec defines the desired state of IngreSsh
 // Ingress for ssh configures access to pods through SSH
 // server running in the cluster. Users, authorized with their public keys,
@@ -100,7 +117,7 @@ type IngreSshSpec struct {
 	// .ssh/authorized_keys file
 	//
 	// +kubebuilder:validation:MinItems=1
-	AuthorizedKeys []string `json:"authorizedKeys"`
+	AuthorizedKeys []AuthorizedKey `json:"authorizedKeys"`
 }
 
 // IngreSshStatus defines the observed state of IngreSsh

@@ -51,7 +51,25 @@ spec:
                   The keys are specified in the same format as lines in the .ssh/authorized_keys
                   file
                 items:
-                  type: string
+                  description: AuthorizedKey is a structure joining user's login name
+                    and public key. The login name is used for audit/logs and not
+                    influence login or authorization parameters. It also is independent
+                    of what user specifies as a login part of the connection sting
+                    as something@cluster. Users are only matched with their public
+                    keys.
+                  properties:
+                    key:
+                      description: Key is a public key to authorize login The keys
+                        are specified in the same format as lines in the .ssh/authorized_keys
+                        file
+                      type: string
+                    user:
+                      description: User specifies the login name of the user. It is
+                        used only for audit.
+                      type: string
+                  required:
+                  - key
+                  type: object
                 minItems: 1
                 type: array
               command:

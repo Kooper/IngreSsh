@@ -22,6 +22,28 @@ var Routes = RoutingTable{
 	routes:  make(map[string][]*types.SshConfig),
 }
 
+func (r *RoutingTable) GetUsername(authorizedKey string) (string, error) {
+
+	r.mutex.RLock()
+	defer r.mutex.RUnlock()
+
+	existing, ok := r.routes[authorizedKey]
+	if !ok {
+		log.Errorf("No user with the authorized key: %s", authorizedKey)
+		return "", errors.New("authentication failure")
+	}
+
+	for _, config := range existing {
+		for _, auth := range config.AuthorizedKeys {
+			if auth.Key == authorizedKey {
+				return auth.User, nil
+			}
+		}
+	}
+
+	return "", errors.New("authentication failure, something wrong with the routing")
+}
+
 // Set sets routes for the specified config
 //
 // First, find the previous configuration (by the Name and Namespace)
@@ -47,20 +69,20 @@ func (r *RoutingTable) Set(newConfig *types.SshConfig) {
 	addAuthorizedKeys := make(map[string]bool)
 	removeAuthorizedKeys := make(map[string]bool)
 	for _, a := range newConfig.AuthorizedKeys {
-		addAuthorizedKeys[a] = true
+		addAuthorizedKeys[a.Key] = true
 	}
 
 	// If it is not a new config - only new keys should be added and old ones
 	// not presented in the new configuration should be removed
 	if existingConfig != nil {
 		for _, a := range existingConfig.AuthorizedKeys {
-			_, ok := addAuthorizedKeys[a]
+			_, ok := addAuthorizedKeys[a.Key]
 			if ok {
 				// The key is in the new and in the old configuration, skip it
-				delete(addAuthorizedKeys, a)
+				delete(addAuthorizedKeys, a.Key)
 			} else {
 				// The key is not in the new configuraiton, put it for removal
-				removeAuthorizedKeys[a] = true
+				removeAuthorizedKeys[a.Key] = true
 			}
 		}
 	}
@@ -111,7 +133,7 @@ func (r *RoutingTable) Delete(config *types.SshConfig) {
 
 	// Delete the affected routes
 	for _, key := range config.AuthorizedKeys {
-		r.deleteAuthorizedKey(key, *config)
+		r.deleteAuthorizedKey(key.Key, *config)
 	}
 
 	// Delete the configuration
