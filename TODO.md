@@ -28,8 +28,8 @@ Implement the following
 * [x] Add a proper global server configuration
 * [x] Cleanup
 * [x] CI on GitHub
+* [x] Add username to SSH keys in resources, otherwise it's hard to audit
 * [ ] Documentation
-* [ ] Add username to SSH keys in resources, otherwise it's hard to audit
 * [ ] Helm chart?
 * [ ] Default image for the debug environment
 * [ ] Fix demo scene bug (interactive choice is not necessary when the choice of target container is unambiguous)
