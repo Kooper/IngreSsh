@@ -72,7 +72,8 @@ spec:
   command: [/bin/sh]           # Uses /bin/sh as the user's shell
   selectors: [app=nginx]       # Authorizes access to the pods with this label in the namespace of the resource
   authorizedKeys:
-  - ssh-rsa AAAAB3NzaC1yc2E... # Like ~/.ssh/authorized_keys
+  - user: kooper                    # User login name for audit
+    key: ssh-rsa AAAAB3NzaC1yc2E... # Like ~/.ssh/authorized_keys
 ---
 # Access to any container of the pod with app=nginx label. The session starts with the
 # ephemeral container running the "busybox" image in the Linux namespace of the target
@@ -86,7 +87,8 @@ spec:
   image: busybox               # Starts busybox ephemeral container to attach the user's shell
   selectors: [app=nginx]       # Authorizes access to the pods with this label in the namespace of the resource
   authorizedKeys:
-  - ssh-rsa AAAAB3NzaC1yc2E... # Like ~/.ssh/authorized_keys
+  - user: kooper                    # User login name for audit
+    key: ssh-rsa AAAAB3NzaC1yc2E... # Like ~/.ssh/authorized_keys
 ```
 
 ### Connecting
