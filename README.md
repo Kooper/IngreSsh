@@ -3,8 +3,8 @@
 ![build and test](https://github.com/Kooper/IngreSsh/actions/workflows/go.yml/badge.svg)
 
 The project implements a Kubernetes ingress controller, which routes incoming
-SSH connections to the shell sessions at authorized pods. Authorization and
-routing are configured as IngreSsh Kubernetes resources.
+SSH connections to the shell sessions at authorized pods. Authentication and
+authorization are configured as IngreSsh Kubernetes resources.
 
 ## Description
 
@@ -140,6 +140,7 @@ data:
     debug_image: "ubuntu"
 ---
 # Here should go the pod definition for the server's container
+# And service definition for nodeport service
 ```
 
 ## How to try it from the source
