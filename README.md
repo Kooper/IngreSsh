@@ -61,6 +61,8 @@ Below is a brief outline of the resource:
 
 ```yaml
 ---
+# Access to any container of the pod with app=nginx label. The session starts with
+# exec of /bin/sh binary from the container
 apiVersion: ingress.kuberstein.io/v1
 kind: IngreSsh
 metadata:
@@ -72,6 +74,9 @@ spec:
   authorizedKeys:
   - ssh-rsa AAAAB3NzaC1yc2E... # Like ~/.ssh/authorized_keys
 ---
+# Access to any container of the pod with app=nginx label. The session starts with the
+# ephemeral container running the "busybox" image in the Linux namespace of the target
+# container. The default image entry point is used.
 apiVersion: ingress.kuberstein.io/v1
 kind: IngreSsh
 metadata:
@@ -82,6 +87,26 @@ spec:
   selectors: [app=nginx]       # Authorizes access to the pods with this label in the namespace of the resource
   authorizedKeys:
   - ssh-rsa AAAAB3NzaC1yc2E... # Like ~/.ssh/authorized_keys
+```
+
+### Connecting
+
+```sh
+# Connect using interactive namespace/pod/container selection for
+# the authorized target container
+$ ssh <cluster> -p <port>
+
+# Connect to the specific namespace/pod/container. If all components
+# are specified the interactive selection screen is skipped.
+# However, you may specify only known components: namespace::@, 
+# :pod:@, ::container@, or any combination of those, like namespace:pod:@
+$ ssh <namespace>:<pod>:<container>@<cluster> -p <port>
+
+# Connect to execute just a single command. Note that SSH does not set up
+# a terminal for such connections, so no interactive selection of the target pod
+# is available. You may specify the exact container with namespace:pod:container@
+# part of the login string.
+ssh <cluster> -p <port> /bin/cat /etc/nginx/nginx.config
 ```
 
 ### Server Configuration
