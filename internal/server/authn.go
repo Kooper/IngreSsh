@@ -22,7 +22,7 @@ var ctxKeySshConfigs = &contextKey{"ssh_configs"}
 func PublicKeyAuthHandler(ctx ssh.Context, key ssh.PublicKey) bool {
 	authorized_key := strings.TrimSpace(string(gossh.MarshalAuthorizedKey(key)))
 
-	log.Errorf("Authorizing the key: %s", authorized_key)
+	// log.Errorf("Authorizing the key: %s", authorized_key)
 	ssh_configs, err := Routes.Get(string(authorized_key))
 	if err != nil {
 		log.Errorf("Public key auth failed for %v: %v", ctx.User(), err)
@@ -33,8 +33,17 @@ func PublicKeyAuthHandler(ctx ssh.Context, key ssh.PublicKey) bool {
 
 		return false
 	}
+
+	username, err := Routes.GetUsername(string(authorized_key))
+	if err != nil {
+		log.Errorf("Can't get login for the authenticated %v: %v", ctx.User(), err)
+		return false
+	}
+
+	log.Infof("User %s is authenticated successfully as %s", ctx.User(), username)
+
 	if len(ssh_configs) == 0 {
-		log.Errorf("Empty set of SSH routes for %v", ctx.User())
+		log.Errorf("Empty set of SSH routes for user %s", username)
 		return false
 	}
 
