@@ -121,7 +121,7 @@ To run the server from the docker container in the cluster apply the ingress
 controller configuration from [manifests/k8s](manifests/k8s).
 
 **Note:** You can use [KIND](https://sigs.k8s.io/kind) to get a local cluster
-for testing. In this case use the configuration with the port mapping:
+for testing. In this case, use the configuration with the port mapping:
 `kind create cluster --config manifests/kind/config.yaml`
 
 ```sh
@@ -193,7 +193,7 @@ make run
 In another console window run SSH to connect to the pod:
 
 ```sh
-ssh 127.0.0.1 -p 2222
+ssh 127.0.0.1 -p 30022
 ```
 
 ## Run with the docker image
