@@ -1,0 +1,17 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/part-of: ingressh
+  name: ingressh-service
+spec:
+  ports:
+  - name: ssh
+    nodePort: 30022
+    port: 30022
+    protocol: TCP
+    targetPort: 30022
+  selector:
+    app: ingressh-controller
+  type: NodePort

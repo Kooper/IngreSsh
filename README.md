@@ -117,32 +117,34 @@ The server configuration consists of the server's RSA private key and configurat
 When running from the source, they are defaulted to the sample configs in
 [manifests/server](manifests/server)
 
-To run the server from the docker container in the cluster you'll need a Secret and ConfigMap
-resources for them:
+To run the server from the docker container in the cluster apply the ingress
+controller configuration from [manifests/k8s](manifests/k8s).
 
-```yaml
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: secret-ssh
-type: kubernetes.io/ssh-auth
-data:
-  ssh-privatekey: |
-    MIIEpQIBAAKCAQEAulqb/Y ...
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: config-ssh
-data:
-  ssh_server_config: |
-    bind_address: ":2222"
-    host_key_file: "ssh-privatekey"
-    debug_image: "ubuntu"
----
-# Here should go the pod definition for the server's container
-# And service definition for nodeport service
+**Note:** You can use [KIND](https://sigs.k8s.io/kind) to get a local cluster
+for testing. In this case use the configuration with the port mapping:
+`kind create cluster --config manifests/kind/config.yaml`
+
+```sh
+# Create global cluster resources
+$ kubectl apply \
+ -f manifests/k8s/clusterrole.yaml \
+ -f manifests/k8s/namespace.yaml \
+ -f manifests/k8s/crd.yaml
+
+# In the configured namespace create and authorize service account
+$ kubectl -n ingressh-controller apply \
+ -f manifests/k8s/service_account.yaml \
+ -f manifests/k8s/role_binding.yaml
+
+# Generate and put your own private SSH server key into the namespaced secret
+$ ssh-keygen -t rsa -f server_privatekey
+$ kubectl -n ingressh-controller create secret generic ssh-secret --from-file=server_privatekey
+
+# In the configured namespace add the SSH server config and start the server
+$ kubectl -n ingressh-controller apply \
+ -f manifests/k8s/configmap.yaml \
+ -f manifests/k8s/deployment.yaml \
+ -f manifests/k8s/service.yaml
 ```
 
 ## How to try it from the source
@@ -155,7 +157,7 @@ against a remote cluster.
 kubeconfig file (i.e. whatever cluster `kubectl cluster-info` shows).
 
 If you are going to use `kind` for experiments, then the following should be
-enough:
+enough when running from the source:
 
 ```sh
 kind create cluster

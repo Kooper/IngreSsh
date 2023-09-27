@@ -1,0 +1,39 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/part-of: ingressh
+    app: ingressh-controller
+  name: ingressh-controller
+spec:
+  selector:
+    matchLabels:
+      app: ingressh-controller
+  template:
+    metadata:
+      labels:
+        app: ingressh-controller
+    spec:
+      serviceAccountName: ingressh-controller-manager
+      containers:
+      - name: ingressh
+        image: kooper1024/ingressh
+        args: [--ssh-config, /config/server_config.yaml]
+        ports:
+        # Must be in sync with the configuration file
+        - containerPort: 30022
+        volumeMounts:
+        - name: config-volume
+          mountPath: /config
+        - name: secret-volume
+          mountPath: /secret
+          readOnly: true
+      volumes:
+      - name: config-volume
+        configMap:
+          name: ssh-config
+      - name: secret-volume
+        secret:
+          secretName: ssh-secret
+          # defaultMode: 0400
