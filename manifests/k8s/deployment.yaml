@@ -18,7 +18,7 @@ spec:
       serviceAccountName: ingressh-controller-manager
       containers:
       - name: ingressh
-        image: kooper1024/ingressh
+        image: kuberstein/ingressh
         args: [--ssh-config, /config/server_config.yaml]
         ports:
         # Must be in sync with the configuration file
