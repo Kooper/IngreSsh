@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"sort"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/list"
@@ -69,12 +70,14 @@ type model struct {
 
 	width int
 
-	listNamespaces list.Model
-	listPods       list.Model
-	listContainers list.Model
+	listNamespaces  list.Model
+	listPods        list.Model
+	listPodsConfigs []podSshConfig
+	listContainers  list.Model
 
 	choiceNamespace string
 	choicePod       string
+	choicePodConfig podSshConfig
 	choiceContainer string
 
 	quitting          bool
@@ -82,14 +85,10 @@ type model struct {
 
 	targetAuth authz
 	hint       types.SshTarget
-
-	podConfigs        []podSshConfig
-	selectedPodConfig podSshConfig
 }
 
 func (m model) Init() tea.Cmd {
 	m.width = defaultListWidth
-	m.state = selectNamespace
 	return nil
 }
 
@@ -164,13 +163,17 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			switch m.state {
 			case selectNamespace:
-				m.stateNoWay = m.stepSelectPod()
+				m.stateNoWay = m.startSelectPodScreen()
 			case selectPod:
-				m.stateNoWay = m.stepSelectContainer()
+				m.stateNoWay = m.startSelectContainerScreen()
 			case selectContainer:
 				m.choiceContainer = string(i)
 				return m, tea.Quit
 			}
+			if m.quitting {
+				return m, tea.Quit
+			}
+			return m, nil
 
 		case "esc":
 			// Escape brings us to the previous state of the selection wizard
@@ -185,37 +188,39 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.state = selectPod
 				m.choicePod = ""
 			}
+			return m, nil
 		}
 
-		return m, nil
 	}
 
 	var cmd tea.Cmd
 	*activeList, cmd = activeList.Update(msg)
-
 	return m, cmd
 }
 
 func (m model) View() string {
 
 	if m.stateNoWay != nil {
-		return quitTextStyle.Render(fmt.Sprintf("No authorized objects: %s. Press any key to select a different option\n", m.stateNoWay))
+		return quitTextStyle.Render(fmt.Sprintf(
+			"No authorized objects: %s\n\nPress any key to select a different option\n", m.stateNoWay))
 	}
 
 	if m.choiceContainer != "" {
-		return quitTextStyle.Render(fmt.Sprintf("Proceed with %s/%s/%s...", m.choiceNamespace, m.choicePod, m.choiceContainer))
+		return quitTextStyle.Render(fmt.Sprintf(
+			"Proceed with %s/%s/%s...\n", m.choiceNamespace, m.choicePod, m.choiceContainer))
 	}
 	if m.quittingWithError != nil {
-		return quitTextStyle.Render(fmt.Sprintf("Error setting up SSH session: %v", m.quittingWithError))
+		return quitTextStyle.Render(fmt.Sprintf("Error setting up SSH session: %v\n", m.quittingWithError))
 	}
 	if m.quitting {
-		return quitTextStyle.Render("SSH session setup has been cancelled")
+		return quitTextStyle.Render("SSH session setup has been cancelled\n")
 	}
+
 	activeList := m.activeList()
 	return "\n" + activeList.View()
 }
 
-func (m *model) stepSelectPod() error {
+func (m *model) startSelectPodScreen() error {
 
 	targetNamespace := string(m.listNamespaces.SelectedItem().(item))
 	podConfigs, err := m.targetAuth.GetPods(targetNamespace, m.hint.Pod)
@@ -227,7 +232,11 @@ func (m *model) stepSelectPod() error {
 	}
 
 	m.choiceNamespace = targetNamespace
-	m.podConfigs = podConfigs
+	m.listPodsConfigs = podConfigs
+
+	sort.Slice(podConfigs, func(i, j int) bool {
+		return podConfigs[i].pod.Name < podConfigs[j].pod.Name
+	})
 
 	items := []list.Item{}
 	for _, p := range podConfigs {
@@ -237,14 +246,23 @@ func (m *model) stepSelectPod() error {
 	m.listPods = m.setupList(items, fmt.Sprintf("Select a pod in the ns '%s'", targetNamespace))
 	m.state = selectPod
 
+	// When there is actually no choice - select the only element automatically
+	// and advance to the next selection
+	if len(podConfigs) == 1 {
+		m.listPods.Select(0)
+		m.choicePod = podConfigs[0].pod.Name
+		m.choicePodConfig = podConfigs[0]
+		return m.startSelectContainerScreen()
+	}
+
 	return nil
 }
 
-func (m *model) stepSelectContainer() error {
+func (m *model) startSelectContainerScreen() error {
 
 	podConfigIdx := m.listPods.Index()
 
-	selectedPodConfig := m.podConfigs[podConfigIdx]
+	selectedPodConfig := m.listPodsConfigs[podConfigIdx]
 	pod := selectedPodConfig.pod
 	config := selectedPodConfig.config
 	containers, err := m.targetAuth.GetContainers(pod, config.Containers, m.hint.Container)
@@ -257,8 +275,9 @@ func (m *model) stepSelectContainer() error {
 	}
 
 	m.choicePod = string(m.listPods.SelectedItem().(item))
-	m.selectedPodConfig = m.podConfigs[podConfigIdx]
+	m.choicePodConfig = m.listPodsConfigs[podConfigIdx]
 
+	sort.Strings(containers)
 	items := []list.Item{}
 	for _, c := range containers {
 		items = append(items, item(c))
@@ -267,10 +286,19 @@ func (m *model) stepSelectContainer() error {
 	m.listContainers = m.setupList(items, fmt.Sprintf("Select a container in %s/%s", m.choiceNamespace, m.choicePod))
 	m.state = selectContainer
 
+	// When there is actually no choice - select the only element automatically
+	// and proceed to exit
+	if len(containers) == 1 {
+		m.listContainers.Select(0)
+		m.choiceContainer = containers[0]
+		m.quitting = true
+		return nil
+	}
+
 	return nil
 }
 
-func (m *model) stepSelectNamespace() error {
+func (m *model) startSelectNamespaceScreen() error {
 
 	namespaces, err := m.targetAuth.GetNamespaces(m.hint.Namespace)
 	if err != nil {
@@ -280,6 +308,7 @@ func (m *model) stepSelectNamespace() error {
 		return errors.New("No authorized namespaces")
 	}
 
+	sort.Strings(namespaces)
 	items := []list.Item{}
 	for _, ns := range namespaces {
 		items = append(items, item(ns))
@@ -287,6 +316,15 @@ func (m *model) stepSelectNamespace() error {
 
 	m.listNamespaces = m.setupList(items, "Select the namespace")
 	m.state = selectNamespace
+
+	// When there is actually no choice - select the only element automatically
+	// and advance to the next selection screen
+	if len(namespaces) == 1 {
+		m.listNamespaces.Select(0)
+		m.choiceNamespace = namespaces[0]
+		return m.startSelectPodScreen()
+	}
+
 	return nil
 }
 
@@ -296,7 +334,7 @@ func (m model) result() (types.SshTarget, podSshConfig) {
 		Pod:       m.choicePod,
 		Container: m.choiceContainer,
 	}
-	return r, m.selectedPodConfig
+	return r, m.choicePodConfig
 }
 
 // Returns attach target and pod+configuration as a result of the
@@ -312,9 +350,16 @@ func interactive(sess ssh.Session, targetAuth authz, hint types.SshTarget) (
 		hint:       hint,
 	}
 
-	err := m.stepSelectNamespace()
+	err := m.startSelectNamespaceScreen()
 	if err != nil {
 		return types.SshTarget{}, podSshConfig{}, err
+	}
+
+	// Shortcut if the target selection is unambiguous and was computed
+	// at the first screen already
+	r, c := m.result()
+	if r.IsComplete() {
+		return r, c, nil
 	}
 
 	p := tea.NewProgram(m, tea.WithOutput(sess), tea.WithInput(sess))

@@ -93,6 +93,8 @@ spec:
 
 ### Connecting
 
+[![asciicast](https://asciinema.org/a/e2gJS70bNEQrwMXEIA64SkpR1.svg)](https://asciinema.org/a/e2gJS70bNEQrwMXEIA64SkpR1)
+
 ```sh
 # Connect using interactive namespace/pod/container selection for
 # the authorized target container
@@ -160,6 +162,7 @@ If you are going to use `kind` for experiments, then the following should be
 enough when running from the source:
 
 ```sh
+# Create a cluster with the default configuration
 kind create cluster
 ```
 
