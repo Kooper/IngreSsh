@@ -1,6 +1,7 @@
 # SSH ingress for Kubernetes
 
 ![build and test](https://github.com/Kooper/IngreSsh/actions/workflows/go.yml/badge.svg)
+[![stability-experimental](https://img.shields.io/badge/stability-experimental-orange.svg)](https://github.com/mkenney/software-guides/blob/master/STABILITY-BADGES.md#experimental)
 
 The project implements a Kubernetes ingress controller, which routes incoming
 SSH connections to the shell sessions at authorized pods. Authentication and
@@ -93,6 +94,9 @@ spec:
 
 ### Connecting
 
+By default, if the user is authorized to access several targets, there is an
+interactive selection of the target object.
+
 [![asciicast](https://asciinema.org/a/e2gJS70bNEQrwMXEIA64SkpR1.svg)](https://asciinema.org/a/e2gJS70bNEQrwMXEIA64SkpR1)
 
 ```sh
@@ -102,8 +106,10 @@ $ ssh <cluster> -p <port>
 
 # Connect to the specific namespace/pod/container. If all components
 # are specified the interactive selection screen is skipped.
-# However, you may specify only known components: namespace::@, 
-# :pod:@, ::container@, or any combination of those, like namespace:pod:@
+# However, you may specify only known components, narrowing the target
+# selection like: namespace::@, :pod:@, ::container@, or any combination
+# of those, like namespace:pod:@
+# This would also skip interactive selection if the choice is unambiguous.
 $ ssh <namespace>:<pod>:<container>@<cluster> -p <port>
 
 # Connect to execute just a single command. Note that SSH does not set up
@@ -222,3 +228,8 @@ make undeploy
 ```
 
 More information can be found via the [Kubebuilder Documentation](https://book.kubebuilder.io/introduction.html)
+
+## Status
+
+The code is new and may change or be removed in future versions. Please try it out and provide feedback.
+If it addresses a use case that is important to you please open an issue to discuss it further.
