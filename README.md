@@ -169,18 +169,12 @@ enough when running from the source:
 
 ```sh
 # Create a cluster with the default configuration
-kind create cluster
-```
+$ kind create cluster
 
-Install CRD:
+# Install CRD:
+$ kubectl apply -f manifests/k8s/crd.yaml
 
-```sh
-kubectl apply -f manifests/k8s/crd.yaml
-```
-
-Run some pods:
-
-```sh
+# Run some pods:
 kubectl apply -f manifests/samples/nginx.yaml
 ```
 
