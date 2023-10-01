@@ -50,7 +50,7 @@ The project is implemented with:
 
 Connecting to the pod in the cluster using SSH ingress:
 
-[![asciicast](https://asciinema.org/a/gh6CTevs3p55ARhVcKLYNPizF.svg)](https://asciinema.org/a/gh6CTevs3p55ARhVcKLYNPizF)
+[![asciicast](https://asciinema.org/a/jefrygN6KZ5faiWoHjUfcEtkS.svg)](https://asciinema.org/a/jefrygN6KZ5faiWoHjUfcEtkS)
 
 ## Configuration
 
