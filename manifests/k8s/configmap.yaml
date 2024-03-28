@@ -8,5 +8,5 @@ metadata:
 data:
   server_config.yaml: |
     bind_address: ":30022"
-    host_key_file: "/secret/server_privatekey"
+    host_key_file: "/secret/ssh-privatekey"
     debug_image: "ubuntu"
