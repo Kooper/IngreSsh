@@ -145,8 +145,8 @@ $ kubectl -n ingressh-controller apply \
  -f manifests/k8s/role_binding.yaml
 
 # Generate and put your own private SSH server key into the namespaced secret
-$ ssh-keygen -t rsa -f server_privatekey
-$ kubectl -n ingressh-controller create secret generic ssh-secret --from-file=server_privatekey
+$ ssh-keygen -t ed25519 -f ssh-privatekey
+$ kubectl -n ingressh-controller create secret generic ssh-secret --from-file=ssh-privatekey
 
 # In the configured namespace add the SSH server config and start the server
 $ kubectl -n ingressh-controller apply \
