@@ -29,6 +29,14 @@ spec:
         - name: secret-volume
           mountPath: /secret
           readOnly: true
+        securityContext:
+          capabilities:
+            drop: [ALL]
+          seccompProfile:
+            type: RuntimeDefault
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          allowPrivilegeEscalation: false
       volumes:
       - name: config-volume
         configMap:
