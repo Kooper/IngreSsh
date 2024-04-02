@@ -1,0 +1,36 @@
+# https://goreleaser.com/customization/
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# vim: set ts=2 sw=2 tw=0 fo=cnqoj
+
+version: 1
+
+project_name: ingressh
+
+before:
+  hooks:
+    - go mod tidy
+    - go generate ./...
+
+builds:
+  - id: manager
+    main: ./cmd
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      # - windows
+      # - darwin
+
+dockers:
+  - image_templates:
+      - "ghcr.io/kooper/{{.ProjectName}}:{{ .Tag }}"
+      - "ghcr.io/kooper/{{.ProjectName}}:v{{ .Major }}"
+      - "ghcr.io/kooper/{{.ProjectName}}:v{{ .Major }}.{{ .Minor }}"
+      - "ghcr.io/kooper/{{.ProjectName}}:latest"
+
+# changelog:
+#   sort: asc
+#   filters:
+#     exclude:
+#       - "^docs:"
+#       - "^test:"
