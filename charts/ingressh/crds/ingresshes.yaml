@@ -1,0 +1,220 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: ingresshes.ingress.kuberstein.io
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.11.3
+spec:
+  group: ingress.kuberstein.io
+  names:
+    kind: IngreSsh
+    listKind: IngreSshList
+    plural: ingresshes
+    singular: ingressh
+  scope: Namespaced
+  versions:
+    - name: v1
+      schema:
+        openAPIV3Schema:
+          description: IngreSsh is the Schema for the ingresshes API
+          properties:
+            apiVersion:
+              description: 'APIVersion defines the versioned schema of this representation
+                of an object. Servers should convert recognized schemas to the latest
+                internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+              type: string
+            kind:
+              description: 'Kind is a string value representing the REST resource this
+                object represents. Servers may infer this from the endpoint the client
+                submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+              type: string
+            metadata:
+              type: object
+            spec:
+              description: IngreSshSpec defines the desired state of IngreSsh Ingress
+                for ssh configures access to pods through SSH server running in the
+                cluster. Users, authorized with their public keys, can establish SSH
+                connection with the pods accordingly to the configured pods selectors.
+                Ingress SSH resources are namespace-scoped.
+              properties:
+                args:
+                  description: Arguments to the entrypoint. The image's CMD is used
+                    if this is not provided. See the description of corresponding field
+                    in the ephemeral container spec (https://github.com/kubernetes/api/blob/master/core/v1/types.go)
+                  items:
+                    type: string
+                  type: array
+                authorizedKeys:
+                  description: AuthorizedKeys is a set of public keys to authorize login
+                    The keys are specified in the same format as lines in the .ssh/authorized_keys
+                    file
+                  items:
+                    description: AuthorizedKey is a structure joining user's login name
+                      and public key. The login name is used for audit/logs and not
+                      influence login or authorization parameters. It also is independent
+                      of what user specifies as a login part of the connection sting
+                      as something@cluster. Users are only matched with their public
+                      keys.
+                    properties:
+                      key:
+                        description: Key is a public key to authorize login The keys
+                          are specified in the same format as lines in the .ssh/authorized_keys
+                          file
+                        type: string
+                      user:
+                        description: User specifies the login name of the user. It is
+                          used only for audit.
+                        type: string
+                    required:
+                      - key
+                    type: object
+                  minItems: 1
+                  type: array
+                command:
+                  description: "A command to execute as the login shell for the SSH
+                    session. This will run in interactive mode when the user executes
+                    `ssh cluster` command. \n For the Debug session mode it sets entrypoint
+                    array for the docker image of the ephermeral container. See the
+                    description of the corresponding field in the ephemeral container
+                    spec (https://github.com/kubernetes/api/blob/master/core/v1/types.go)
+                    If not specified, an entrypoint of the docker image of the ephemeral
+                    container will be used. \n For the Exec session mode functions like
+                    a login shell for the user. \n If the user specifies command as
+                    a part of the ssh connect string (f.e. `ssh cluster ls -l`), the
+                    specified command will be used instead of the login shell in the
+                    Exec session mode. For the Debug session mode an ephemeral container
+                    will be started with the entrypoint defined in this configuration,
+                    and then the specified command will be used in scope of the SSH
+                    session. \n Please note that SSH does not set up terminal when running
+                    the command specified via command line. If the user runs `ssh cluster
+                    /bin/bash` there will be no normal terminal support. It is OK for
+                    non-interactive commands like `ssh cluster ls -l` \n This means
+                    that although in theory you may not specify the command here, in
+                    practice you would like to set it up to allow interactive sessions
+                    in the Exec session mode."
+                  items:
+                    type: string
+                  type: array
+                containers:
+                  description: "If specified, containers define the list of container
+                    names to attach SSH session to. The first container in the target
+                    pod, which matches one of the container names in the list, will
+                    be attached. If the target pod contains none of the specified container
+                    names session can not be created. \n If not specified, all containers
+                    can be attached. \n A user can specify the container to attach as
+                    part of the login part of the the SSH connection command, like `ssh
+                    namespace:pod:container@cluster` where the namespace and pod parts
+                    can be omitted: `ssh ::container@cluster`"
+                  items:
+                    type: string
+                  type: array
+                image:
+                  description: Image for the ephemeral container. If not specified the
+                    default from the server configuration is used. The option is relevant
+                    for the Debug type sessions. For the Exec type sessions it has no
+                    effect.
+                  type: string
+                selectors:
+                  description: Selectors define target pods to authorize SSH session
+                    to. If not specified, all pods could be accessed by the authorized
+                    user. A user can specify one of the authorized pods as the login
+                    part of SSH connection string, like `ssh pod-name@cluster /bin/bash`
+                    As ingress SSH resources are namespace-scoped, selectors are matched
+                    against pods in the resource's namespace.
+                  items:
+                    type: string
+                  type: array
+                session:
+                  description: 'Session specifies the mechanism to use for the SSH session
+                    of this ingress resource: exec in container (Exec) or ephemeral
+                    container (Debug) Debug is the default.'
+                  enum:
+                  - Debug
+                  - Exec
+                  type: string
+                workingDir:
+                  description: Container's working directory to drop SSH session to.
+                    If not specified, the container runtime's default will be used,
+                    which might be configured in the container image.
+                  type: string
+              required:
+                - authorizedKeys
+              type: object
+            status:
+              description: IngreSshStatus defines the observed state of IngreSsh
+              properties:
+                active:
+                  description: A list of pointers to currently running jobs.
+                  items:
+                    description: "ObjectReference contains enough information to let
+                      you inspect or modify the referred object. --- New uses of this
+                      type are discouraged because of difficulty describing its usage
+                      when embedded in APIs. 1. Ignored fields.  It includes many fields
+                      which are not generally honored.  For instance, ResourceVersion
+                      and FieldPath are both very rarely valid in actual usage. 2. Invalid
+                      usage help.  It is impossible to add specific help for individual
+                      usage.  In most embedded usages, there are particular restrictions
+                      like, \"must refer only to types A and B\" or \"UID not honored\"
+                      or \"name must be restricted\". Those cannot be well described
+                      when embedded. 3. Inconsistent validation.  Because the usages
+                      are different, the validation rules are different by usage, which
+                      makes it hard for users to predict what will happen. 4. The fields
+                      are both imprecise and overly precise.  Kind is not a precise
+                      mapping to a URL. This can produce ambiguity during interpretation
+                      and require a REST mapping.  In most cases, the dependency is
+                      on the group,resource tuple and the version of the actual struct
+                      is irrelevant. 5. We cannot easily change it.  Because this type
+                      is embedded in many locations, updates to this type will affect
+                      numerous schemas.  Don't make new APIs embed an underspecified
+                      API type they do not control. \n Instead of using this type, create
+                      a locally provided and used type that is well-focused on your
+                      reference. For example, ServiceReferences for admission registration:
+                      https://github.com/kubernetes/api/blob/release-1.17/admissionregistration/v1/types.go#L533
+                      ."
+                    properties:
+                      apiVersion:
+                        description: API version of the referent.
+                        type: string
+                      fieldPath:
+                        description: 'If referring to a piece of an object instead of
+                          an entire object, this string should contain a valid JSON/Go
+                          field access statement, such as desiredState.manifest.containers[2].
+                          For example, if the object reference is to a container within
+                          a pod, this would take on a value like: "spec.containers{name}"
+                          (where "name" refers to the name of the container that triggered
+                          the event) or if no container name is specified "spec.containers[2]"
+                          (container with index 2 in this pod). This syntax is chosen
+                          only to have some well-defined way of referencing a part of
+                          an object. TODO: this design is not final and this field is
+                          subject to change in the future.'
+                        type: string
+                      kind:
+                        description: 'Kind of the referent. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+                        type: string
+                      name:
+                        description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names'
+                        type: string
+                      namespace:
+                        description: 'Namespace of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/'
+                        type: string
+                      resourceVersion:
+                        description: 'Specific resourceVersion to which this reference
+                          is made, if any. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency'
+                        type: string
+                      uid:
+                        description: 'UID of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#uids'
+                        type: string
+                    type: object
+                    x-kubernetes-map-type: atomic
+                  type: array
+                lastlogTime:
+                  description: Information when was the last time the ssh session was
+                    opened.
+                  format: date-time
+                  type: string
+              type: object
+          type: object
+      served: true
+      storage: true
+      subresources:
+        status: {}

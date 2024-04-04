@@ -1,0 +1,10 @@
+owner: Kooper
+repo: IngreSsh
+remote: origin
+target-branch: main
+chart-dirs:
+  - charts
+chart-repos:
+  - bitnami=https://charts.bitnami.com/bitnami
+generate-release-notes: true
+debug: true

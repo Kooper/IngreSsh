@@ -27,3 +27,11 @@ Dockerfile.cross
 
 # releases
 dist/
+
+# Dev
+/config/
+
+# Chart dependencies
+**/charts/*.tgz
+.history
+/public

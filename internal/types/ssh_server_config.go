@@ -17,7 +17,7 @@ type ServerConfig struct {
 
 // Default configuration values
 var serverConfigDefault = []byte(`
-bind_address: ":30022"
+bind_address: ":8022"
 host_key_file: "manifests/server/sample_key"
 debug_image: "busybox"
 `)
