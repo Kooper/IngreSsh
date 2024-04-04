@@ -25,6 +25,9 @@ Dockerfile.cross
 *.swo
 *~
 
+# releases
+dist/
+
 # Dev
 /config/
 
