@@ -24,3 +24,11 @@ Dockerfile.cross
 *.swp
 *.swo
 *~
+
+# Dev
+/config/
+
+# Chart dependencies
+**/charts/*.tgz
+.history
+/public

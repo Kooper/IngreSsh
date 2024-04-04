@@ -1,0 +1,45 @@
+CHART NAME: {{ .Chart.Name }}
+CHART VERSION: {{ .Chart.Version }}
+APP VERSION: {{ .Chart.AppVersion }}
+
+1. Get the IngreSsh endpoint parameters.
+
+{{- if contains "NodePort" .Values.service.type }}
+
+    export INGRESSH_ENDPOINT=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+    export INGRESSH_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ template "common.names.fullname" . }})
+
+{{- else if contains "LoadBalancer" .Values.service.type }}
+
+    export INGRESSH_ENDPOINT=$(kubectl get --namespace {{ .Release.Namespace }} services {{ template "common.names.fullname" . }} -o jsonpath="{.spec.externalIPs[0]}")
+    export INGRESSH_PORT={{ .Values.service.sshPort }}
+
+{{- else if contains "ClusterIP"  .Values.service.type }}
+
+    kubectl port-forward --namespace {{ .Release.Namespace }} svc/{{ template "common.names.fullname" . }} {{ .Values.service.sshPort }}:{{ .Values.service.sshPort }} &
+    export INGRESSH_ENDPOINT=127.0.0.1
+    export INGRESSH_PORT={{ .Values.service.sshPort }}
+
+{{- end }}
+
+2. Connect to the IngreSsh endpoint.
+
+- Connect using interactive namespace, pod and container selection for
+  the authorized target container.
+
+    ssh $INGRESSH_ENDPOINT -p $INGRESSH_PORT
+
+- Connect to the specific namespace, pod and container.
+  You may specify only known components, narrowing the target
+  selection like: `namespace::@`, `:pod:@`, `::container@`, or any combination
+  of those, like `namespace:pod:@`.
+  The interactive selection is skipped if the choice is unambiguous.
+
+    ssh <namespace>:<pod>:<container>@$INGRESSH_ENDPOINT -p $INGRESSH_PORT
+
+- Connect to execute just a single command. Note that SSH does not set up
+  a terminal for such connections, so no interactive selection of the target pod
+  is available. You may specify the exact container with `namespace:pod:container@`
+  part of the login string.
+
+    ssh $INGRESSH_ENDPOINT -p $INGRESSH_PORT /bin/whoami
