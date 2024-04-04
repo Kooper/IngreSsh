@@ -7,7 +7,7 @@ The project implements a Kubernetes ingress controller, which routes incoming
 SSH connections to the shell sessions at authorized pods. Authentication and
 authorization are configured as IngreSsh Kubernetes resources.
 
-## Description
+## Introduction
 
 _"How can I SSH into the running pod in Kubernetes?"_ is probably the first
 question a new software developer asks a Kubernetes administrator. The usual
@@ -52,112 +52,89 @@ Connecting to the pod in the cluster using SSH ingress:
 
 [![asciicast](https://asciinema.org/a/jefrygN6KZ5faiWoHjUfcEtkS.svg)](https://asciinema.org/a/jefrygN6KZ5faiWoHjUfcEtkS)
 
+## Getting started
+
+To install the chart with the release name `my-release`:
+
+```sh
+helm install my-release oci://ghcr.io/kooper/charts/ingressh
+```
+
+_See [the official Helm CLI documentation](https://helm.sh/docs/helm/) for commands description._
+
 ## Configuration
+
+### Server Configuration
+
+See [Customizing the Chart Before Installing](https://helm.sh/docs/intro/using_helm/#customizing-the-chart-before-installing).
+To see all configurable options with detailed comments, visit the chart's [values.yaml](./charts/ingressh/values.yaml),
+or run these configuration commands:
+
+```sh
+helm show values oci://ghcr.io/kooper/charts/ingressh
+```
 
 ### IngreSsh Resource
 
-An elaborate description of the `IngreSsh` resources schema is available at [api/v1/ingressh_types.go](api/v1/ingressh_types.go)
+An elaborate description of the `IngreSsh` resources schema is available at [api/v1/ingressh_types.go](api/v1/ingressh_types.go).
 
 Below is a brief outline of the resource:
 
 ```yaml
 ---
-# Access to any container of the pod with app=nginx label. The session starts with
-# exec of /bin/sh binary from the container
+# Access to any container of the pod with app.kubernetes.io/name=nginx label.
+# The session starts with exec of /bin/sh binary from the container
 apiVersion: ingress.kuberstein.io/v1
 kind: IngreSsh
 metadata:
   name: ssh-exec
 spec:
-  session: Exec                # Uses exec command
-  command: [/bin/sh]           # Uses /bin/sh as the user's shell
-  selectors: [app=nginx]       # Authorizes access to the pods with this label in the namespace of the resource
+  session: Exec                       # Uses exec command
+  command:
+    - /bin/sh                         # Uses /bin/sh as the user's shell
+  selectors:
+    - app.kubernetes.io/name=nginx    # Authorizes access to the pods with this label in the namespace of the resource
   authorizedKeys:
-  - user: kooper                    # User login name for audit
-    key: ssh-rsa AAAAB3NzaC1yc2E... # Like ~/.ssh/authorized_keys
+    - user: kooper                    # User login name for audit
+      key: ssh-rsa AAAAB3NzaC1yc2E... # Like ~/.ssh/authorized_keys
 ---
-# Access to any container of the pod with app=nginx label. The session starts with the
-# ephemeral container running the "busybox" image in the Linux namespace of the target
-# container. The default image entry point is used.
+# Access to any container of the pod with app.kubernetes.io/name=nginx label.
+# The session starts with the ephemeral container running the "busybox" image
+# in the Linux namespace of the target container. The default image entry point is used.
 apiVersion: ingress.kuberstein.io/v1
 kind: IngreSsh
 metadata:
   name: ssh-debug
 spec:
-  session: Debug               # Uses debug attach command
-  image: busybox               # Starts busybox ephemeral container to attach the user's shell
-  selectors: [app=nginx]       # Authorizes access to the pods with this label in the namespace of the resource
+  session: Debug                      # Uses debug attach command
+  image: busybox                      # Starts busybox ephemeral container to attach the user's shell
+  selectors:
+    - app.kubernetes.io/name=nginx    # Authorizes access to the pods with this label in the namespace of the resource
   authorizedKeys:
-  - user: kooper                    # User login name for audit
-    key: ssh-rsa AAAAB3NzaC1yc2E... # Like ~/.ssh/authorized_keys
+    - user: kooper                    # User login name for audit
+      key: ssh-rsa AAAAB3NzaC1yc2E... # Like ~/.ssh/authorized_keys
 ```
 
 ### Connecting
+
+After installing the chart, Helm command prints the notes containing the commands
+used to connect to the IngreSsh controler.
+
+The notes can be printed again for a specific Helm release with the following command.
+Replace the release name `my-release` with the actual name.
+
+```sh
+helm get notes my-release
+```
 
 By default, if the user is authorized to access several targets, there is an
 interactive selection of the target object.
 
 [![asciicast](https://asciinema.org/a/e2gJS70bNEQrwMXEIA64SkpR1.svg)](https://asciinema.org/a/e2gJS70bNEQrwMXEIA64SkpR1)
 
-```sh
-# Connect using interactive namespace/pod/container selection for
-# the authorized target container
-$ ssh <cluster> -p <port>
-
-# Connect to the specific namespace/pod/container. If all components
-# are specified the interactive selection screen is skipped.
-# However, you may specify only known components, narrowing the target
-# selection like: namespace::@, :pod:@, ::container@, or any combination
-# of those, like namespace:pod:@
-# This would also skip interactive selection if the choice is unambiguous.
-$ ssh <namespace>:<pod>:<container>@<cluster> -p <port>
-
-# Connect to execute just a single command. Note that SSH does not set up
-# a terminal for such connections, so no interactive selection of the target pod
-# is available. You may specify the exact container with namespace:pod:container@
-# part of the login string.
-ssh <cluster> -p <port> /bin/cat /etc/nginx/nginx.config
-```
-
-### Server Configuration
-
-The server configuration consists of the server's RSA private key and configuration file.
-When running from the source, they are defaulted to the sample configs in
-[manifests/server](manifests/server)
-
-To run the server from the docker container in the cluster apply the ingress
-controller configuration from [manifests/k8s](manifests/k8s).
-
-**Note:** You can use [KIND](https://sigs.k8s.io/kind) to get a local cluster
-for testing. In this case, use the configuration with the port mapping:
-`kind create cluster --config manifests/kind/config.yaml`
-
-```sh
-# Create global cluster resources
-$ kubectl apply \
- -f manifests/k8s/clusterrole.yaml \
- -f manifests/k8s/namespace.yaml \
- -f manifests/k8s/crd.yaml
-
-# In the configured namespace create and authorize service account
-$ kubectl -n ingressh-controller apply \
- -f manifests/k8s/service_account.yaml \
- -f manifests/k8s/role_binding.yaml
-
-# Generate and put your own private SSH server key into the namespaced secret
-$ ssh-keygen -t ed25519 -f ssh-privatekey
-$ kubectl -n ingressh-controller create secret generic ssh-secret --from-file=ssh-privatekey
-
-# In the configured namespace add the SSH server config and start the server
-$ kubectl -n ingressh-controller apply \
- -f manifests/k8s/configmap.yaml \
- -f manifests/k8s/deployment.yaml \
- -f manifests/k8s/service.yaml
-```
-
 ## How to try it from the source
 
-You’ll need a Kubernetes cluster to run against. You can use
+You'll need a Kubernetes cluster to run against. You can use
 [KIND](https://sigs.k8s.io/kind) to get a local cluster for testing, or run
 against a remote cluster.
 
@@ -169,10 +146,10 @@ enough when running from the source:
 
 ```sh
 # Create a cluster with the default configuration
-$ kind create cluster
+kind create cluster
 
 # Install CRD:
-$ kubectl apply -f manifests/k8s/crd.yaml
+kubectl apply -f charts/ingressh/crds/ingresshes.yaml
 
 # Run some pods:
 kubectl apply -f manifests/samples/nginx.yaml

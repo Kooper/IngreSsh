@@ -1,0 +1,9 @@
+# apiVersion: kind.x-k8s.io/v1alpha4
+# kind: Cluster
+# metadata:
+#   name: {{ include "common.names.fullname" . }}
+# nodes:
+#   - role: control-plane
+#     extraPortMappings:
+#       - containerPort: 8022
+#         hostPort: 30022

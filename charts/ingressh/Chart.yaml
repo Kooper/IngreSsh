@@ -1,0 +1,25 @@
+apiVersion: v2
+version: 1.0.0
+name: ingressh
+description: SSH ingress for Kubernetes
+appVersion: "alpha"
+type: application
+keywords:
+  - ingress
+  - ssh
+home: https://github.com/Kooper/IngreSsh
+# icon:
+sources:
+  - https://github.com/Kooper/IngreSsh
+maintainers:
+  - name: Kooper
+    url: https://github.com/Kooper
+kubeVersion: ^1.23.0-0
+dependencies:
+  - name: common
+    repository: https://charts.bitnami.com/bitnami
+    version: ^2.19.1
+    tags:
+      - bitnami-common
+annotations:
+  artifacthub.io/license: Apache-2.0
