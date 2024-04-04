@@ -29,8 +29,8 @@ Implement the following
 * [x] Cleanup
 * [x] CI on GitHub
 * [x] Add username to SSH keys in resources, otherwise it's hard to audit
-* [ ] Documentation
-* [ ] Helm chart?
+* [x] Documentation
+* [x] Helm chart?
 * [ ] Default image for the debug environment
 * [ ] Fix demo scene bug (interactive choice is not necessary when the choice of target container is unambiguous)
 * [ ] Propose something for SCP (looks like this is hard enough)
