@@ -1,0 +1,21 @@
+{{- if .Values.runHelmTest -}}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ printf "%s-test-ssh" (include "common.names.fullname" .) | trunc 63 | trimSuffix "-" }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+  annotations:
+    helm.sh/hook: test
+spec:
+  containers:
+    - name: ssh
+      image: linuxkit/sshd:v1.0.0
+      command:
+        - ssh
+      args:
+        - {{ include "common.names.fullname" . }}.{{ .Release.Namespace }}.svc.{{ .Values.clusterDomain }}
+        - -p
+        - {{ .Values.service.sshPort }}
+  restartPolicy: Never
+{{- end }}
