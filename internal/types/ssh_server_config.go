@@ -1,52 +1,28 @@
 package types
 
 import (
-	"bytes"
-	"fmt"
 	"os"
-
-	"github.com/spf13/viper"
 )
 
 // ServerConfig contains cluster-wide SSH parameters
 type ServerConfig struct {
-	BindAddress string `mapstructure:"bind_address"`
-	HostKeyFile string `mapstructure:"host_key_file"`
-	DebugImage  string `mapstructure:"debug_image"`
+	BindAddress string
+	HostKeyFile string
+	DebugImage  string
 }
 
-// Default configuration values
-var serverConfigDefault = []byte(`
-bind_address: ":8022"
-host_key_file: "manifests/server/sample_key"
-debug_image: "busybox"
-`)
-
-func GetServerConf(configPath string) (*ServerConfig, error) {
-
-	viper.SetConfigType("yaml")
-	if err := viper.ReadConfig(bytes.NewBuffer(serverConfigDefault)); err != nil {
-		return nil, err
+func GetServerConf() *ServerConfig {
+	return &ServerConfig{
+		BindAddress: getEnv("SSH_BIND_ADDRESS", ":8022"),
+		HostKeyFile: getEnv("HOST_KEY_FILE", "/secret/ssh-privatekey"),
+		DebugImage: getEnv("DEBUG_IMAGE", "busybox"),
 	}
+}
 
-	conf := &ServerConfig{}
-	if err := viper.Unmarshal(conf); err != nil {
-		return nil, fmt.Errorf("unable to decode into config struct, %v", err)
-	}
+func getEnv(key string, defaultVal string) string {
+    if value, exists := os.LookupEnv(key); exists {
+		return value
+    }
 
-	// Overlay configuration from file if any
-	if configPath != "" {
-		file, err := os.Open(configPath)
-		if err != nil {
-			return nil, fmt.Errorf("can't read config file at %s: %v", configPath, err)
-		}
-		if err = viper.ReadConfig(file); err != nil {
-			return nil, fmt.Errorf("error reading config file at %s: %v", configPath, err)
-		}
-		if err = viper.Unmarshal(conf); err != nil {
-			return nil, fmt.Errorf("unable to decode into config struct, %v", err)
-		}
-	}
-
-	return conf, nil
+    return defaultVal
 }

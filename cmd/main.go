@@ -45,11 +45,9 @@ func init() {
 }
 
 func main() {
-	var sshConfig string
 	var metricsAddr string
 	var enableLeaderElection bool
 	var probeAddr string
-	flag.StringVar(&sshConfig, "ssh-config", "", "Path to the configuration file for the SSH server.")
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
@@ -119,7 +117,7 @@ func main() {
 
 	setupLog.Info("Starting SSH server...")
 	eg.Go(func() error {
-		return startSshServer(sshConfig, egCtx)
+		return startSshServer(egCtx)
 	})
 
 	if err := eg.Wait(); err != nil {
@@ -127,12 +125,9 @@ func main() {
 	}
 }
 
-func startSshServer(sshConfigPath string, ctx context.Context) error {
+func startSshServer(ctx context.Context) error {
 
-	conf, err := types.GetServerConf(sshConfigPath)
-	if err != nil {
-		return err
-	}
+	conf := types.GetServerConf()
 
 	kube := k8s.ClientImpl{}
 	if err := kube.Init(ctrl.GetConfigOrDie()); err != nil {
