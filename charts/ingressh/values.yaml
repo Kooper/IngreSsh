@@ -58,8 +58,8 @@ diagnosticMode:
 
 ## @section IngreSsh Image parameters
 image:
-  registry: docker.io
-  repository: kuberstein/ingressh
+  registry: ghcr.io
+  repository: kooper/ingressh
   ## Defaults to '{{ .Chart.AppVersion }}'
   ##
   tag: ""
@@ -86,9 +86,13 @@ image:
 ## IngreSsh settings based on environment variables
 ## @param ingressh.sshPrivateKey IngreSsh server private key
 ## @param ingressh.existingSecret Name of existing secret containing the IngreSsh server private key
+## @param ingressh.hostKeyFile File path of the host private key
+## @param ingressh.debugImage Container image used for Debug sessions
 ingressh:
   sshPrivateKey: ""
   existingSecret: ""
+  hostKeyFile: ""
+  debugImage: ""
 
 ## @section Deployment parameters
 

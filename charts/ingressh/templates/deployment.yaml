@@ -61,9 +61,17 @@ spec:
           {{- if .Values.containerSecurityContext.enabled }}
           securityContext: {{- omit .Values.containerSecurityContext "enabled" | toYaml | nindent 12 }}
           {{- end }}
-          args:
-            - --ssh-config
-            - /config/server_config.yaml
+          env:
+            - name: SSH_BIND_ADDRESS
+              value: ":{{ .Values.containerPorts.ssh }}"
+            {{- if .Values.ingressh.hostKeyFile }}
+            - name: HOST_KEY_FILE
+              value: {{ .Values.ingressh.hostKeyFile | quote }}
+            {{- end }}
+            {{- if .Values.ingressh.debugImage }}
+            - name: DEBUG_IMAGE
+              value: {{ .Values.ingressh.debugImage | quote }}
+            {{- end }}
           ports:
             - name: ssh
               containerPort: {{ .Values.containerPorts.ssh }}
@@ -86,8 +94,6 @@ spec:
               path: /readyz
               port: http-probe
           volumeMounts:
-            - name: config-volume
-              mountPath: /config
             - name: secret-volume
               mountPath: /secret
               readOnly: true
@@ -95,9 +101,6 @@ spec:
         {{- include "common.tplvalues.render" (dict "value" .Values.sidecars "context" $) | nindent 8 }}
         {{- end }}
       volumes:
-        - name: config-volume
-          configMap:
-            name: {{ printf "%s-configuration" (include "common.names.fullname" .) | trunc 63 | trimSuffix "-" }}
         - name: secret-volume
           secret:
             secretName: {{ include "common.secrets.name" (dict "defaultNameSuffix" "privatekey" "context" $) }}
