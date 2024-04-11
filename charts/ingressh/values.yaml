@@ -58,8 +58,8 @@ diagnosticMode:
 
 ## @section IngreSsh Image parameters
 image:
-  registry: docker.io
-  repository: kuberstein/ingressh
+  registry: ghcr.io
+  repository: kooper/ingressh
   ## Defaults to '{{ .Chart.AppVersion }}'
   ##
   tag: ""
