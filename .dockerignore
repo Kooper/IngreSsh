@@ -1,4 +1,14 @@
-# More info: https://docs.docker.com/engine/reference/builder/#dockerignore-file
+# https://docs.docker.com/engine/reference/builder/#dockerignore-file
+
+.git/
+.github/
+.devcontainer/
+Dockerfile
+contrib/
+
 # Ignore build and test binaries.
 bin/
 testbin/
+
+# Ignore charts
+charts/
