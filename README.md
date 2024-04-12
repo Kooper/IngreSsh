@@ -1,20 +1,24 @@
 # SSH ingress for Kubernetes
 
-![build and test](https://github.com/Kooper/IngreSsh/actions/workflows/go.yml/badge.svg)
+[![Go](https://github.com/Kooper/IngreSsh/actions/workflows/go.yml/badge.svg)](https://github.com/Kooper/IngreSsh/actions/workflows/go.yml)
 [![stability-experimental](https://img.shields.io/badge/stability-experimental-orange.svg)](https://github.com/mkenney/software-guides/blob/master/STABILITY-BADGES.md#experimental)
 
 The project implements a Kubernetes ingress controller, which routes incoming
 SSH connections to the shell sessions at authorized pods. Authentication and
 authorization are configured as IngreSsh Kubernetes resources.
 
+> [!Warning]
+> The code is new and may change or be removed in future versions. Please try it out and provide feedback.  
+> If it addresses a use case that is important to you please open an issue to discuss it further.
+
 ## Introduction
 
 _"How can I SSH into the running pod in Kubernetes?"_ is probably the first
 question a new software developer asks a Kubernetes administrator. The usual
-answer is _"You can't, but there is kubectl exec/kubectl cp which are doing
+answer is _"You can't, but there is `kubectl exec`/`kubectl cp` which are doing
 the same."_
 
-Kubectl does the trick indeed, but it looks like people just have a warm fuzzy
+`kubectl` does the trick indeed, but it looks like people just have a warm fuzzy
 feeling about connecting with the familiar SSH to any environment like
 Linux. As there are no roadblocks to implementing this scenario with the
 Kubernetes model and available SSH libraries, the project provides the
@@ -22,14 +26,14 @@ implementation of an SSH ingress controller for Kubernetes. The controller
 can route incoming SSH connections to shell sessions started in the
 context of the target pods.
 
-* This might be useful for users not comfortable with kubectl or who have no
-  kubectl configured/installed
+* This might be useful for users not comfortable with `kubectl` or who have no
+  `kubectl` configured/installed;
 * The user could access the container for the application's debug purposes
-  without the API server being exposed outside the secured perimeter
+  without the API server being exposed outside the secured perimeter;
 * It is possible to configure a predefined debug image with all the required
   tools to be used for shell sessions. This allows the administrator to control
   what is running as debug containers without allowing users to run whatever
-  they want or set up special security policies
+  they want or set up special security policies.
 
 Incoming SSH connections are authenticated with the authorized keys, configured
 in the ingress resource parameters. Ingress resource also contains
@@ -40,15 +44,9 @@ A shell is opened either as an exec command in the target container or as an
 attach session to the debug container started automatically upon incoming
 connection in the Linux namespace of the target container.
 
-The project is implemented with:
-
-* [kubebuilder](https://book.kubebuilder.io/)
-* [GliderLabs](https://github.com/gliderlabs/ssh) SSH libraries
-* CharmBracelet [bubbletea](https://github.com/charmbracelet/bubbletea) libraries
-
 ## Demo
 
-Connecting to the pod in the cluster using SSH ingress:
+Connecting to the pod in the cluster using IngreSsh:
 
 [![asciicast](https://asciinema.org/a/jefrygN6KZ5faiWoHjUfcEtkS.svg)](https://asciinema.org/a/jefrygN6KZ5faiWoHjUfcEtkS)
 
@@ -57,10 +55,10 @@ Connecting to the pod in the cluster using SSH ingress:
 To install the chart with the release name `my-release`:
 
 ```sh
-helm install my-release oci://ghcr.io/kooper/charts/ingressh
+helm install my-release oci://ghcr.io/kooper/ingressh/charts/ingressh
 ```
 
-_See [the official Helm CLI documentation](https://helm.sh/docs/helm/) for commands description._
+See [the official Helm CLI documentation](https://helm.sh/docs/helm/) for commands description.
 
 ## Configuration
 
@@ -71,19 +69,20 @@ To see all configurable options with detailed comments, visit the chart's [value
 or run these configuration commands:
 
 ```sh
-helm show values oci://ghcr.io/kooper/charts/ingressh
+helm show values oci://ghcr.io/kooper/ingressh/charts/ingressh
 ```
 
 ### IngreSsh Resource
 
 An elaborate description of the `IngreSsh` resources schema is available at [api/v1/ingressh_types.go](api/v1/ingressh_types.go).
 
-Below is a brief outline of the resource:
+#### `Exec` Session
+
+This example provide access to any container of the pod with `app.kubernetes.io/name=nginx` label.  
+The session starts with exec of `/bin/sh` binary from the container.
 
 ```yaml
 ---
-# Access to any container of the pod with app.kubernetes.io/name=nginx label.
-# The session starts with exec of /bin/sh binary from the container
 apiVersion: ingress.kuberstein.io/v1
 kind: IngreSsh
 metadata:
@@ -97,10 +96,16 @@ spec:
   authorizedKeys:
     - user: kooper                    # User login name for audit
       key: ssh-rsa AAAAB3NzaC1yc2E... # Like ~/.ssh/authorized_keys
+```
+
+#### `Debug` Session
+
+This example provide access to any container of the pod with `app.kubernetes.io/name=nginx` label.  
+The session starts with the ephemeral container running the `busybox` image
+in the Linux namespace of the target container. The default image entry point is used.
+ 
+```yaml
 ---
-# Access to any container of the pod with app.kubernetes.io/name=nginx label.
-# The session starts with the ephemeral container running the "busybox" image
-# in the Linux namespace of the target container. The default image entry point is used.
 apiVersion: ingress.kuberstein.io/v1
 kind: IngreSsh
 metadata:
@@ -118,8 +123,7 @@ spec:
 ### Connecting
 
 After installing the chart, Helm command prints the notes containing the commands
-used to connect to the IngreSsh controler.
-
+used to connect to the IngreSsh controler.  
 The notes can be printed again for a specific Helm release with the following command.
 Replace the release name `my-release` with the actual name.
 
@@ -138,8 +142,9 @@ You'll need a Kubernetes cluster to run against. You can use
 [KIND](https://sigs.k8s.io/kind) to get a local cluster for testing, or run
 against a remote cluster.
 
-**Note:** Your controller will automatically use the current context in your
-kubeconfig file (i.e. whatever cluster `kubectl cluster-info` shows).
+> [!Note]
+> Your controller will automatically use the current context in your
+> `kubeconfig` file (i.e. whatever cluster `kubectl cluster-info` shows).
 
 If you are going to use `kind` for experiments, then the following should be
 enough when running from the source:
@@ -198,9 +203,16 @@ To UnDeploy the controller from the cluster:
 make undeploy
 ```
 
-More information can be found via the [Kubebuilder Documentation](https://book.kubebuilder.io/introduction.html)
+More information can be found via the [Kubebuilder Documentation](https://book.kubebuilder.io/introduction.html).
 
-## Status
+## Acknowledgements
 
-The code is new and may change or be removed in future versions. Please try it out and provide feedback.
-If it addresses a use case that is important to you please open an issue to discuss it further.
+The project is implemented with:
+
+* [kubebuilder](https://book.kubebuilder.io/)
+* [GliderLabs](https://github.com/gliderlabs/ssh) SSH libraries
+* CharmBracelet [bubbletea](https://github.com/charmbracelet/bubbletea) libraries
+
+## License
+
+This project is licensed under [Apache 2.0](LICENSE).
