@@ -2,7 +2,7 @@ apiVersion: v2
 version: 2.0.0
 name: ingressh
 description: SSH ingress for Kubernetes
-appVersion: "v0.1.0-alpha"
+appVersion: "vv0.1"
 type: application
 keywords:
   - ingress
