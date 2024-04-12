@@ -34,7 +34,7 @@
       "matchStringsStrategy": "combination",
       "depNameTemplate": "ghcr.io/kooper/{{{depName}}}",
       "datasourceTemplate": "docker",
-      "versioningTemplate": "composer"
+      "versioningTemplate": "semver-coerced"
     }
   ]
 }
