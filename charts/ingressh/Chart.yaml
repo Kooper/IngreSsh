@@ -1,5 +1,5 @@
 apiVersion: v2
-version: 2.0.2
+version: 2.0.3
 name: ingressh
 description: SSH ingress for Kubernetes
 appVersion: "v0.1.0-alpha"
@@ -18,7 +18,7 @@ kubeVersion: ^1.23.0-0
 dependencies:
   - name: common
     repository: https://charts.bitnami.com/bitnami
-    version: ^2.19.3
+    version: ^2.20.0
     tags:
       - bitnami-common
 annotations:
