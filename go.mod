@@ -13,9 +13,9 @@ require (
 	golang.org/x/crypto v0.25.0
 	golang.org/x/exp v0.0.0-20240404231335-c0f41cb1a7a0
 	golang.org/x/sync v0.7.0
-	k8s.io/api v0.30.2
-	k8s.io/apimachinery v0.30.2
-	k8s.io/client-go v0.30.2
+	k8s.io/api v0.30.3
+	k8s.io/apimachinery v0.30.3
+	k8s.io/client-go v0.30.3
 	sigs.k8s.io/controller-runtime v0.18.4
 )
 
