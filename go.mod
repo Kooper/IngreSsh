@@ -6,11 +6,11 @@ require (
 	github.com/charmbracelet/bubbles v0.20.0
 	github.com/charmbracelet/bubbletea v1.1.0
 	github.com/charmbracelet/lipgloss v0.13.1
-	github.com/gliderlabs/ssh v0.3.7
+	github.com/gliderlabs/ssh v0.3.8
 	github.com/onsi/ginkgo/v2 v2.22.1
 	github.com/onsi/gomega v1.36.1
 	github.com/sirupsen/logrus v1.9.3
-	golang.org/x/crypto v0.30.0
+	golang.org/x/crypto v0.31.0
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
 	golang.org/x/sync v0.10.0
 	k8s.io/api v0.32.0
