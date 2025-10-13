@@ -1,6 +1,6 @@
 module kuberstein.io/ingressh
 
-go 1.24.0
+go 1.25.3
 
 require (
 	github.com/charmbracelet/bubbles v0.20.0
