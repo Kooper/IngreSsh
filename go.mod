@@ -3,8 +3,8 @@ module kuberstein.io/ingressh
 go 1.25.5
 
 require (
-	github.com/charmbracelet/bubbles v0.20.0
-	github.com/charmbracelet/bubbletea v1.3.3
+	github.com/charmbracelet/bubbles v0.21.0
+	github.com/charmbracelet/bubbletea v1.3.4
 	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/gliderlabs/ssh v0.3.8
 	github.com/onsi/ginkgo/v2 v2.27.2
