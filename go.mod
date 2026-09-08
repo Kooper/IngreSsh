@@ -1,6 +1,6 @@
 module kuberstein.io/ingressh
 
-go 1.25.5
+go 1.26.0
 
 require (
 	github.com/charmbracelet/bubbles v0.21.0
@@ -12,7 +12,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	golang.org/x/crypto v0.46.0
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
-	golang.org/x/sync v0.19.0
+	golang.org/x/sync v0.23.0
 	k8s.io/api v0.35.0
 	k8s.io/apimachinery v0.35.0
 	k8s.io/client-go v0.35.0
